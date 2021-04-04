@@ -17,6 +17,12 @@
     } while(0)
 
 /* assume 2 <= n <= 0x40000000 */
+/*@
+    requires 2 <= n <= 0x40000000;
+    requires \valid(array + (0..(n - 1)));
+    
+    assigns array[0..(n-1)];
+*/
 void PQCLEAN_NTRUHPS4096821_CLEAN_crypto_sort_int32(int32 *array, size_t n) {
     size_t top, p, q, r, i, j;
     int32 *x = array;
