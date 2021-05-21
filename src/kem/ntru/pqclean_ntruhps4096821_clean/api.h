@@ -10,13 +10,16 @@
 
 #define PQCLEAN_NTRUHPS4096821_CLEAN_CRYPTO_ALGNAME "ntruhps4096821"
 
+/*@
+    requires \valid (pk + (0..1230));
+    requires \valid (sk + (0..1590));
+ */
 int PQCLEAN_NTRUHPS4096821_CLEAN_crypto_kem_keypair(uint8_t *pk, uint8_t *sk);
 
 /*@
-    requires \valid_read (c + (0..1230));
-    requires \valid_read (pk + (0..1230));
+    requires \valid (c + (0..1230));
     requires \valid (k + (0..32));
-    ensures \initialized (k + (0..32));
+    requires \valid_read (pk + (0..1230));
  */
 int PQCLEAN_NTRUHPS4096821_CLEAN_crypto_kem_enc(uint8_t *c, uint8_t *k, const uint8_t *pk);
 

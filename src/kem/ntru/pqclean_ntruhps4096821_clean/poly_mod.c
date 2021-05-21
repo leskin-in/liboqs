@@ -22,6 +22,13 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_poly_mod_3_Phi_n(poly *r) {
     }
 }
 
+/*@
+    requires \valid(r);
+    requires \valid(r->coeffs + (0..(821 - 1)));
+    requires \initialized(r->coeffs + (0..(821 - 1)));
+    assigns r->coeffs[0..(821 - 1)];
+    ensures \forall integer j; 0 <= j <= (821 - 1) ==> \at(r, Post)->coeffs[j] == \at(r, Pre)->coeffs[j] - \at(r, Pre)->coeffs[821 - 1];
+*/
 void PQCLEAN_NTRUHPS4096821_CLEAN_poly_mod_q_Phi_n(poly *r) {
     int i;
     for (i = 0; i < NTRU_N; i++) {

@@ -57,6 +57,13 @@ static int owcpa_check_m(const poly *m) {
     return (int) (1 & ((~t + 1) >> 31));
 }
 
+/*@
+    requires \valid_read (seed + (0..(821 - 1 + (30 * (821 - 1) + 7) / 8 - 1)));
+    requires \valid (pk + (0..(1230 - 1)));
+    requires \valid (sk + (0..(1590 - 1)));
+    assigns pk[0..(1230 - 1)];
+    assigns sk[0..(1590 - 1)];
+*/
 void PQCLEAN_NTRUHPS4096821_CLEAN_owcpa_keypair(unsigned char *pk,
         unsigned char *sk,
         const unsigned char seed[NTRU_SAMPLE_FG_BYTES]) {
@@ -80,6 +87,12 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_owcpa_keypair(unsigned char *pk,
 
 
     /* g = 3*g */
+    /*@
+        loop invariant 0 <= i <= 821;
+        loop invariant \forall size_t j; 0 <= j < i ==> \at(g, LoopCurrent)->coeffs[j] == \at(g, LoopEntry)->coeffs[j] * 3;
+        loop assigns g->coeffs[0..(821 - 1)];
+        loop variant 821 - i;
+    */
     for (i = 0; i < NTRU_N; i++) {
         g->coeffs[i] = 3 * g->coeffs[i];
     }

@@ -17,20 +17,67 @@
     } while(0)
 
 /* assume 2 <= n <= 0x40000000 */
-/*@
+/*
+    axiomatic Increasing
+    {
+        predicate 
+        Increasing{L}(value_type * a, integer m, integer n) = 
+            \forall integer i, j; m <= i < j < n ==> a[i] <= a[j];
+        predicate
+        Increasing{L}(value_type * a, integer n) = 
+            Increasing{L}(a, 0, n);
+    }
+
+    axiomatic MultisetReorder
+    {
+        predicate
+        MultisetReorder{K,L}(value_type * a, integer m, integer n) =
+            \forall value_type v;
+        predicate
+        Count{K}(a, m, n, v) == Count{L}(a, m, n, v);
+        predicate
+        MultisetReorder{K,L}(value_type * a, integer n) =
+            MultisetReorder{K,L}(a, 0, n);
+
+        lemma Unchanged_MultisetReorder{K,L}:
+            \forall value_type *a, integer k, n;
+            Unchanged{K,L}(a, k, n) ==> MultisetReorder{K,L}(a, k, n);
+        lemma MultisetReorder_DisjointUnion{K,L}:
+            \forall value_type *a, integer i, k, n;
+            0 <= i <= k <= n ==>
+            MultisetReorder{K,L}(a, i, k) ==>
+            MultisetReorder{K,L}(a, k, n) ==>
+            MultisetReorder{K,L}(a, i, n);
+        lemma MultisetReorder_Symmetric{K,L}:
+            \forall value_type *a, integer m, n;
+            MultisetReorder{K,L}(a, m, n) ==>
+            MultisetReorder{L,K}(a, m, n);
+        lemma MultisetReorder_Transitive{K,L,M}:
+            \forall value_type *a, integer m, n;
+            MultisetReorder{K,L}(a, m, n) ==>
+            MultisetReorder{L,M}(a, m, n) ==>
+            MultisetReorder{K,M}(a, m, n);
+    }
+
     requires 2 <= n <= 0x40000000;
     requires \valid(array + (0..(n - 1)));
-    
     assigns array[0..(n-1)];
+    ensures Increasing(array, n);
+    ensures MultisetReorder(array, n);
 */
 void PQCLEAN_NTRUHPS4096821_CLEAN_crypto_sort_int32(int32 *array, size_t n) {
     size_t top, p, q, r, i, j;
     int32 *x = array;
 
     top = 1;
+    /*@
+        loop invariant top <= n;
+        loop assigns top;
+    */
     while (top < n - top) {
         top += top;
     }
+    //@ assert top > n / 2;
 
     for (p = top; p >= 1; p >>= 1) {
         i = 0;

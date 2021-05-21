@@ -7,6 +7,10 @@
 #include "sample.h"
 
 // API FUNCTIONS
+/*@
+    requires \valid (pk + (0..(1230 - 1)));
+    requires \valid (sk + (0..(1590 - 1)));
+*/
 int PQCLEAN_NTRUHPS4096821_CLEAN_crypto_kem_keypair(uint8_t *pk, uint8_t *sk) {
     uint8_t seed[NTRU_SAMPLE_FG_BYTES];
 

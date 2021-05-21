@@ -1,6 +1,15 @@
 #include "sample.h"
 
 /*@
+    axiomatic Bitwise {
+        axiom bitwise_and_integer_integer: 
+            \forall integer n, m, r; (n >= 0 && m >= 0 && r == (n & m)) ==> (0 <= r <= m && 0 <= r <= n);
+        axiom bitwise_and_integer_uint16_t:
+            \forall integer n, m, uint16_t r; (n >= 0 && m >= 0 && r == (n & m)) ==> (0 <= r <= m && 0 <= r <= n);
+    }
+*/
+
+/*@
     requires \valid_read(uniformbytes + (0..(821 - 1 + (30 * (821 - 1) + 7) / 8 - 1)));
     requires \valid(f);
     requires \valid(g);
@@ -8,13 +17,13 @@
     requires \valid (g->coeffs + (0..(821 - 1)));
     requires \forall integer i; 0 <= i <= (821 - 1 + (30 * (821 - 1) + 7) / 8 - 1) ==> 0 <= uniformbytes[i] <= 65535;
 
-    ensures \forall integer i; 0 <= i < (821 - 1) ==> 0 <= f->coeffs[i] <= 2;
-    ensures f->coeffs[821 - 1] == 0;
-    ensures \forall integer i; 0 <= i < (821 - 1) ==> 0 <= g->coeffs[i] <= 2;
-    ensures g->coeffs[821 - 1] == 0;
+    ensures \forall integer i; 0 <= i < (821 - 1) ==> 0 <= f->coeffs[i] <= 3;
+    ensures f->coeffs[821 - 1 - 1] == 0;
+    ensures \forall integer i; 0 <= i < (821 - 1) ==> 0 <= g->coeffs[i] <= 3;
+    ensures g->coeffs[821 - 1 - 1] == 0;
 
-    assigns f->coeffs[0..(821 - 1)];
-    assigns g->coeffs[0..(821 - 1)];
+    assigns f->coeffs[0..(821 - 1 - 1)];
+    assigns g->coeffs[0..(821 - 1 - 1)];
  */ 
 void PQCLEAN_NTRUHPS4096821_CLEAN_sample_fg(poly *f, poly *g, const unsigned char uniformbytes[NTRU_SAMPLE_FG_BYTES]) {
 
@@ -30,11 +39,11 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_sample_fg(poly *f, poly *g, const unsigned cha
     requires \valid (m->coeffs + (0..(821 - 1)));
     requires \forall integer i; 0 <= i <= (821 - 1 + (30 * (821 - 1) + 7) / 8 - 1) ==> 0 <= uniformbytes[i] <= 65535;
 
-    ensures \forall integer i; 0 <= i < (821 - 1) ==> 0 <= r->coeffs[i] <= 2;
+    ensures \forall integer i; 0 <= i < (821 - 1) ==> 0 <= r->coeffs[i] <= 3;
     ensures r->coeffs[821 - 1] == 0;
 
-    assigns r->coeffs[0..(821 - 1)];
-    assigns m->coeffs[0..(821 - 1)];
+    assigns r->coeffs[0..(821 - 1 - 1)];
+    assigns m->coeffs[0..(821 - 1 - 1)];
  */ 
 void PQCLEAN_NTRUHPS4096821_CLEAN_sample_rm(poly *r, poly *m, const unsigned char uniformbytes[NTRU_SAMPLE_RM_BYTES]) {
 
@@ -45,12 +54,12 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_sample_rm(poly *r, poly *m, const unsigned cha
 
 /*@
     requires \valid_read(u + (0..((30 * (821 - 1) + 7) / 8)));
-    requires \valid(r->coeffs + (0..(821 - 1)));
+    requires \valid(r->coeffs + (0..(821 - 1 - 1)));
     
     ensures \forall integer i; 0 <= i < (821 - 1) ==> 0 <= r->coeffs[i] <= 3;
-    ensures r->coeffs[821 - 1] == 0;
+    ensures r->coeffs[821 - 1 - 1] == 0;
 
-    assigns r->coeffs[0..(821 - 1)];
+    assigns r->coeffs[0..(821 - 1 - 1)];
  */
 void PQCLEAN_NTRUHPS4096821_CLEAN_sample_fixed_type(poly *r, const unsigned char u[NTRU_SAMPLE_FT_BYTES]) {
     // Assumes NTRU_SAMPLE_FT_BYTES = ceil(30*(n-1)/8)
@@ -63,7 +72,7 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_sample_fixed_type(poly *r, const unsigned char
         loop invariant 0 <= i <= (821 - 1) / 4;
         loop invariant \forall size_t j; 0 <= j < (i * 4) ==> \initialized(s + j);
         loop assigns i;
-        loop assigns s[0..821 - 1];
+        loop assigns s[0..(821 - 1 - 1)];
         loop variant ((821 - 1) / 4 - i);
     */
     for (i = 0; i < (NTRU_N - 1) / 4; i++) {
@@ -87,7 +96,7 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_sample_fixed_type(poly *r, const unsigned char
         loop invariant ((1 << 12) / 8 - 2) / 2 <= i <= ((1 << 12) / 8 - 2);
         loop assigns i;
         loop assigns s[(((1 << 12) / 8 - 2) / 2)..(((1 << 12) / 8 - 2) - 1)];
-        loop variant (((1 << 12) / 8 - 2) - i);
+        loop variant ((1 << 12) / 8 - 2) - i;
     */
     for (i = NTRU_WEIGHT / 2; i < NTRU_WEIGHT; i++) {
         s[i] |=  2;
@@ -95,6 +104,13 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_sample_fixed_type(poly *r, const unsigned char
 
     PQCLEAN_NTRUHPS4096821_CLEAN_crypto_sort_int32(s, NTRU_N - 1);
 
+    /*@
+        loop invariant 0 <= i <= 821 - 1;
+        loop invariant \forall size_t j; 0 <= j < i ==> r->coeffs[j] == (s[j] & 3);
+        loop assigns i;
+        loop assigns r->coeffs[0..(821 - 1 - 1)];
+        loop variant (821 - 1) - i;
+    */
     for (i = 0; i < NTRU_N - 1; i++) {
         r->coeffs[i] = ((uint16_t) (s[i] & 3));
     }

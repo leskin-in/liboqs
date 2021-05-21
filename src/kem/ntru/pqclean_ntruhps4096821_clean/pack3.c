@@ -1,9 +1,20 @@
 #include "poly.h"
 
+/*@
+    requires \valid(msg + (0..((821 - 1) / 5 - 1)));
+    requires \valid_read(a);
+    requires \valid_read(a->coeffs + (0..(821 - 1)));
+    assigns msg[0..(((821 - 1) / 5) - 1)];
+*/
 void PQCLEAN_NTRUHPS4096821_CLEAN_poly_S3_tobytes(unsigned char msg[NTRU_OWCPA_MSGBYTES], const poly *a) {
     int i;
     unsigned char c;
 
+    /*@
+        loop invariant 0 <= i <= (821 - 1) / 5;
+        loop assigns msg[0..((821 - 1) / 5 - 1)];
+        loop variant (821 - 1) / 5 - i;
+    */
     for (i = 0; i < NTRU_PACK_DEG / 5; i++) {
         c =        a->coeffs[5 * i + 4] & 255;
         c = (3 * c + a->coeffs[5 * i + 3]) & 255;
