@@ -55,11 +55,6 @@ OQS_API void OQS_randombytes_custom_algorithm(void (*algorithm_ptr)(uint8_t *, s
 	oqs_randombytes_algorithm = algorithm_ptr;
 }
 
-/*@
-	requires \valid(random_array + (0..(bytes_to_read - 1)));
-	assigns (random_array[0..(bytes_to_read - 1)]);
-	ensures \initialized(random_array + (0..(bytes_to_read - 1)));
-*/
 OQS_API void OQS_randombytes(uint8_t *random_array, size_t bytes_to_read) {
 	oqs_randombytes_algorithm(random_array, bytes_to_read);
 }

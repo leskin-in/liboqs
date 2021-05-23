@@ -36,9 +36,10 @@ if(OQS_ENABLE_KEM_ntru_hps2048677_avx2)
 endif()
 
 if(OQS_ENABLE_KEM_ntru_hps4096821)
-    add_library(ntru_hps4096821_clean OBJECT kem_ntru_hps4096821.c pqclean_ntruhps4096821_clean/cmov.c pqclean_ntruhps4096821_clean/crypto_sort_int32.c pqclean_ntruhps4096821_clean/kem.c pqclean_ntruhps4096821_clean/owcpa.c pqclean_ntruhps4096821_clean/pack3.c pqclean_ntruhps4096821_clean/packq.c pqclean_ntruhps4096821_clean/poly.c pqclean_ntruhps4096821_clean/poly_lift.c pqclean_ntruhps4096821_clean/poly_mod.c pqclean_ntruhps4096821_clean/poly_r2_inv.c pqclean_ntruhps4096821_clean/poly_rq_mul.c pqclean_ntruhps4096821_clean/poly_s3_inv.c pqclean_ntruhps4096821_clean/sample.c pqclean_ntruhps4096821_clean/sample_iid.c)
+    add_executable(ntru_hps4096821_clean kem_ntru_hps4096821.c pqclean_ntruhps4096821_clean/cmov.c pqclean_ntruhps4096821_clean/crypto_sort_int32.c pqclean_ntruhps4096821_clean/kem.c pqclean_ntruhps4096821_clean/owcpa.c pqclean_ntruhps4096821_clean/pack3.c pqclean_ntruhps4096821_clean/packq.c pqclean_ntruhps4096821_clean/poly.c pqclean_ntruhps4096821_clean/poly_lift.c pqclean_ntruhps4096821_clean/poly_mod.c pqclean_ntruhps4096821_clean/poly_r2_inv.c pqclean_ntruhps4096821_clean/poly_rq_mul.c pqclean_ntruhps4096821_clean/poly_s3_inv.c pqclean_ntruhps4096821_clean/sample.c pqclean_ntruhps4096821_clean/sample_iid.c pqclean_ntruhps4096821_clean/main.c)
     target_include_directories(ntru_hps4096821_clean PRIVATE ${CMAKE_CURRENT_LIST_DIR}/pqclean_ntruhps4096821_clean)
     target_include_directories(ntru_hps4096821_clean PRIVATE ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims)
+    target_link_libraries(ntru_hps4096821_clean common)
     set(_NTRU_OBJS ${_NTRU_OBJS} $<TARGET_OBJECTS:ntru_hps4096821_clean>)
 endif()
 
