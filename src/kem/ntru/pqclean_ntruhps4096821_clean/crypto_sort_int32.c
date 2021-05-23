@@ -20,11 +20,11 @@
 /*
     axiomatic Increasing
     {
-        predicate 
-        Increasing{L}(value_type * a, integer m, integer n) = 
+        predicate
+        Increasing{L}(value_type * a, integer m, integer n) =
             \forall integer i, j; m <= i < j < n ==> a[i] <= a[j];
         predicate
-        Increasing{L}(value_type * a, integer n) = 
+        Increasing{L}(value_type * a, integer n) =
             Increasing{L}(a, 0, n);
     }
 
@@ -79,27 +79,49 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_crypto_sort_int32(int32 *array, size_t n) {
     }
     //@ assert top > n / 2;
 
+    /*@
+        loop invariant top >= p >= 0;
+        loop assigns i, p, j, q, r, x[0..(n - 1)];
+    */
     for (p = top; p >= 1; p >>= 1) {
         i = 0;
+        /*@
+            loop assigns i, j, x[0..(n - 1)];
+        */
         while (i + 2 * p <= n) {
+            /*@
+                loop assigns j, x[0..(n - 1)];
+            */
             for (j = i; j < i + p; ++j) {
                 int32_MINMAX(x[j], x[j + p]);
             }
             i += 2 * p;
         }
+        /*@
+            loop assigns j, x[0..(n - 1)];
+        */
         for (j = i; j < n - p; ++j) {
             int32_MINMAX(x[j], x[j + p]);
         }
 
         i = 0;
         j = 0;
+        /*@
+            loop assigns q, r, i, j, x[0..(n - 1)];
+        */
         for (q = top; q > p; q >>= 1) {
             if (j != i) {
+                /*@
+                    loop assigns q, r, i, j, x[0..(n - 1)];
+                */
                 for (;;) {
                     if (j == n - q) {
                         goto done;
                     }
                     int32 a = x[j + p];
+                    /*@
+                        loop assigns r, a;
+                    */
                     for (r = q; r > p; r >>= 1) {
                         int32_MINMAX(a, x[j + r]);
                     }
@@ -111,9 +133,18 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_crypto_sort_int32(int32 *array, size_t n) {
                     }
                 }
             }
+            /*@
+                loop assigns i, j, r, x[0..(n - 1)];
+            */
             while (i + p <= n - q) {
+                /*@
+                    loop assigns j, r;
+                */
                 for (j = i; j < i + p; ++j) {
                     int32 a = x[j + p];
+                    /*@
+                        loop assigns r, a;
+                    */
                     for (r = q; r > p; r >>= 1) {
                         int32_MINMAX(a, x[j + r]);
                     }
@@ -123,8 +154,14 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_crypto_sort_int32(int32 *array, size_t n) {
             }
             /* now i + p > n - q */
             j = i;
+            /*@
+                loop assigns j, r, x[0..(n - 1)];
+            */
             while (j < n - q) {
                 int32 a = x[j + p];
+                /*@
+                    loop assigns r, a;
+                */
                 for (r = q; r > p; r >>= 1) {
                     int32_MINMAX(a, x[j + r]);
                 }

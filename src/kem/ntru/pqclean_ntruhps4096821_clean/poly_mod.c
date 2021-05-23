@@ -1,5 +1,22 @@
 #include "poly.h"
 
+/*@
+    axiomatic Mod3_pm {
+        logic uint16_t mod3_pm(uint16_t a) reads \nothing;
+        axiom mod3_axiom_in_bounds_pm:
+            \forall uint16_t n, r; (0 <= n <= 65535 && mod3_pm(n) == r) ==> \false;
+        axiom mod3_is_correct_in_bounds_pm:
+            \forall uint16_t n; 0 <= n <= 65535 ==> mod3_pm(n) == n % 3;
+        axiom mod3_is_bounded_in_bounds_pm:
+            \forall uint16_t n; 0 <= n <= 65535 ==> 0 <= mod3_pm(n) <= 2; 
+        
+    }
+*/
+/*@
+    requires type_bounds: 0 <= a <= 65535;
+    ensures \result == mod3_pm(a);
+    assigns \nothing;
+ */
 static uint16_t mod3(uint16_t a) {
     uint16_t r;
     int16_t t, c;
@@ -15,8 +32,18 @@ static uint16_t mod3(uint16_t a) {
     return (c & r) ^ (~c & t);
 }
 
+/*@
+    requires \valid(r);
+    requires \valid(r->coeffs + (0..(821 - 1)));
+    assigns r->coeffs[0..(821 - 1)];
+*/
 void PQCLEAN_NTRUHPS4096821_CLEAN_poly_mod_3_Phi_n(poly *r) {
     int i;
+    /*@
+        loop invariant 0 <= i <= 821;
+        loop assigns i, r->coeffs[0..(821 - 1)];
+        loop variant 821 - i;
+    */
     for (i = 0; i < NTRU_N; i++) {
         r->coeffs[i] = mod3(r->coeffs[i] + 2 * r->coeffs[NTRU_N - 1]);
     }
@@ -31,11 +58,23 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_poly_mod_3_Phi_n(poly *r) {
 */
 void PQCLEAN_NTRUHPS4096821_CLEAN_poly_mod_q_Phi_n(poly *r) {
     int i;
+    /*@
+        loop invariant 0 <= i <= 821;
+        loop assigns i, r->coeffs[0..(821 - 1)];
+        loop variant 821 - i;
+    */
     for (i = 0; i < NTRU_N; i++) {
         r->coeffs[i] = r->coeffs[i] - r->coeffs[NTRU_N - 1];
     }
 }
 
+/*@
+    requires \valid(r);
+    requires \valid(r->coeffs + (0..(821 - 1)));
+    requires \valid_read(a);
+    requires \valid_read(a->coeffs + (0..(821 - 1)));
+    assigns r->coeffs[0..(821 - 1)];
+*/
 void PQCLEAN_NTRUHPS4096821_CLEAN_poly_Rq_to_S3(poly *r, const poly *a) {
     int i;
     uint16_t flag;
@@ -43,6 +82,11 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_poly_Rq_to_S3(poly *r, const poly *a) {
     /* The coefficients of a are stored as non-negative integers. */
     /* We must translate to representatives in [-q/2, q/2) before */
     /* reduction mod 3.                                           */
+    /*@
+        loop invariant 0 <= i <= 821;
+        loop assigns i, flag, r->coeffs[0..(821 - 1)];
+        loop variant 821 - i;
+    */
     for (i = 0; i < NTRU_N; i++) {
         /* Need an explicit reduction mod q here                    */
         r->coeffs[i] = MODQ(a->coeffs[i]);

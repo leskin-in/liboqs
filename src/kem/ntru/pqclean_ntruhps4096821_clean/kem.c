@@ -10,6 +10,8 @@
 /*@
     requires \valid (pk + (0..(1230 - 1)));
     requires \valid (sk + (0..(1590 - 1)));
+    assigns pk[0..(1230 - 1)];
+    assigns sk[0..(1590 - 1)];
 */
 int PQCLEAN_NTRUHPS4096821_CLEAN_crypto_kem_keypair(uint8_t *pk, uint8_t *sk) {
     uint8_t seed[NTRU_SAMPLE_FG_BYTES];
@@ -22,6 +24,13 @@ int PQCLEAN_NTRUHPS4096821_CLEAN_crypto_kem_keypair(uint8_t *pk, uint8_t *sk) {
     return 0;
 }
 
+/*@
+    requires \valid (c + (0..(1230 - 1)));
+    requires \valid (k + (0..(32 - 1)));
+    requires \valid_read (pk + (0..(1230 - 1)));
+    assigns c[0..(1230 - 1)];
+    assigns k[0..(32 - 1)];
+ */
 int PQCLEAN_NTRUHPS4096821_CLEAN_crypto_kem_enc(uint8_t *c, uint8_t *k, const uint8_t *pk) {
     poly r, m;
     uint8_t rm[NTRU_OWCPA_MSGBYTES];
@@ -41,6 +50,12 @@ int PQCLEAN_NTRUHPS4096821_CLEAN_crypto_kem_enc(uint8_t *c, uint8_t *k, const ui
     return 0;
 }
 
+/*@
+    requires \valid(k + (0..(32 - 1)));
+    requires \valid_read(c + (0..(1230 - 1)));
+    requires \valid_read(sk + (0..(1590 - 1)));
+    assigns k[0..(32 - 1)];
+*/
 int PQCLEAN_NTRUHPS4096821_CLEAN_crypto_kem_dec(uint8_t *k, const uint8_t *c, const uint8_t *sk) {
     int i, fail;
     uint8_t rm[NTRU_OWCPA_MSGBYTES];
@@ -53,13 +68,24 @@ int PQCLEAN_NTRUHPS4096821_CLEAN_crypto_kem_dec(uint8_t *k, const uint8_t *c, co
     sha3_256(k, rm, NTRU_OWCPA_MSGBYTES);
 
     /* shake(secret PRF key || input ciphertext) */
+    /*@
+        loop invariant 0 <= i <= 32;
+        loop assigns buf[0..(32 - 1)];
+        loop variant 32 - i;
+    */
     for (i = 0; i < NTRU_PRFKEYBYTES; i++) {
         buf[i] = sk[i + NTRU_OWCPA_SECRETKEYBYTES];
     }
+    /*@
+        loop invariant 0 <= i <= (821 - 1 + (30 * (821 - 1) + 7) / 8);
+        loop assigns buf[32..(32 + (821 - 1 + (30 * (821 - 1) + 7) / 8))];
+        loop variant (821 - 1 + (30 * (821 - 1) + 7) / 8) - i;
+    */
     for (i = 0; i < NTRU_CIPHERTEXTBYTES; i++) {
         buf[NTRU_PRFKEYBYTES + i] = c[i];
     }
     sha3_256(rm, buf, NTRU_PRFKEYBYTES + NTRU_CIPHERTEXTBYTES);
+
 
     PQCLEAN_NTRUHPS4096821_CLEAN_cmov(k, rm, NTRU_SHAREDKEYBYTES, (unsigned char) fail);
 

@@ -2,6 +2,10 @@
 #include "poly.h"
 #include "sample.h"
 
+/*@
+    requires \valid_read(ciphertext + (0..((12 * (821 - 1) + 7) / 8 - 1)));
+    assigns \nothing;
+*/
 static int owcpa_check_ciphertext(const unsigned char *ciphertext) {
     /* A ciphertext is log2(q)*(n-1) bits packed into bytes.  */
     /* Check that any unused bits of the final byte are zero. */
@@ -16,6 +20,11 @@ static int owcpa_check_ciphertext(const unsigned char *ciphertext) {
     return (int) (1 & ((~t + 1) >> 15));
 }
 
+/*@
+    requires \valid_read(r);
+    requires \valid_read(r->coeffs + (0..(821 - 1)));
+    assigns \nothing;
+*/
 static int owcpa_check_r(const poly *r) {
     /* A valid r has coefficients in {0,1,q-1} and has r[N-1] = 0 */
     /* Note: We may assume that 0 <= r[i] <= q-1 for all i        */
@@ -23,6 +32,11 @@ static int owcpa_check_r(const poly *r) {
     int i;
     uint32_t t = 0;
     uint16_t c;
+    /*@
+        loop invariant 0 <= i <= 821 - 1;
+        loop assigns i, c, t;
+        loop variant 821 - 1 - i;
+    */
     for (i = 0; i < NTRU_N - 1; i++) {
         c = r->coeffs[i];
         t |= (c + 1) & (NTRU_Q - 4); /* 0 iff c is in {-1,0,1,2} */
@@ -35,6 +49,11 @@ static int owcpa_check_r(const poly *r) {
     return (int) (1 & ((~t + 1) >> 31));
 }
 
+/*@
+    requires \valid_read(m);
+    requires \valid_read(m->coeffs + (0..(821 - 1)));
+    assigns \nothing;
+*/
 static int owcpa_check_m(const poly *m) {
     /* Check that m is in message space, i.e.                  */
     /*  (1)  |{i : m[i] = 1}| = |{i : m[i] = 2}|, and          */
@@ -45,6 +64,11 @@ static int owcpa_check_m(const poly *m) {
     uint32_t t = 0;
     uint16_t ps = 0;
     uint16_t ms = 0;
+    /*@
+        loop invariant 0 <= i <= 821;
+        loop assigns i, ps, ms;
+        loop variant 821 - i;
+    */
     for (i = 0; i < NTRU_N; i++) {
         ps += m->coeffs[i] & 1;
         ms += m->coeffs[i] & 2;
@@ -111,6 +135,17 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_owcpa_keypair(unsigned char *pk,
 }
 
 
+/*@
+    requires \valid_read(pk + (0..(1230 - 1)));
+    requires \valid(r);
+    requires \valid(r->coeffs + (0..(821 - 1)));
+    requires \valid(m);
+    requires \valid(m->coeffs + (0..(821 - 1)));
+    requires \valid(c + (0..(3 * ((821 - 1) / 2) - 1)));
+    assigns r->coeffs[0..(821 - 1)];
+    assigns m->coeffs[0..(821 - 1)];
+    assigns *(c + (0..(3 * ((821 - 1) / 2) - 1)));
+*/
 void PQCLEAN_NTRUHPS4096821_CLEAN_owcpa_enc(unsigned char *c,
         const poly *r,
         const poly *m,
@@ -125,6 +160,11 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_owcpa_enc(unsigned char *c,
     PQCLEAN_NTRUHPS4096821_CLEAN_poly_Rq_mul(ct, r, h);
 
     PQCLEAN_NTRUHPS4096821_CLEAN_poly_lift(liftm, m);
+    /*@
+        loop invariant 0 <= i <= 821;
+        loop assigns i, ct->coeffs[0..(821 - 1)];
+        loop variant 821 - i;
+    */
     for (i = 0; i < NTRU_N; i++) {
         ct->coeffs[i] = ct->coeffs[i] + liftm->coeffs[i];
     }
@@ -132,6 +172,12 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_owcpa_enc(unsigned char *c,
     PQCLEAN_NTRUHPS4096821_CLEAN_poly_Rq_sum_zero_tobytes(c, ct);
 }
 
+/*@
+    requires \valid(rm + (0..(2 * (821 - 1 + 4) / 5 - 1)));
+    requires \valid_read(ciphertext + (0..(3 * ((821 - 1) / 2) - 1)));
+    requires \valid_read(secretkey + (0..(3 * ((821 - 1) / 2) - 1)));
+    assigns *(rm + (0..(2 * (821 - 1 + 4) / 5 - 1)));
+*/
 int PQCLEAN_NTRUHPS4096821_CLEAN_owcpa_dec(unsigned char *rm,
         const unsigned char *ciphertext,
         const unsigned char *secretkey) {
@@ -168,6 +214,11 @@ int PQCLEAN_NTRUHPS4096821_CLEAN_owcpa_dec(unsigned char *rm,
 
     /* b = c - Lift(m) mod (q, x^n - 1) */
     PQCLEAN_NTRUHPS4096821_CLEAN_poly_lift(liftm, m);
+    /*@
+        loop invariant 0 <= i <= 821;
+        loop assigns i, b->coeffs[0..(821 - 1)];
+        loop variant 821 - i;
+    */
     for (i = 0; i < NTRU_N; i++) {
         b->coeffs[i] = c->coeffs[i] - liftm->coeffs[i];
     }

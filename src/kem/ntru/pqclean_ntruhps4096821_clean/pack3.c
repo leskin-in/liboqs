@@ -25,10 +25,22 @@ void PQCLEAN_NTRUHPS4096821_CLEAN_poly_S3_tobytes(unsigned char msg[NTRU_OWCPA_M
     }
 }
 
+/*@
+    requires \valid(r);
+    requires \valid(r->coeffs + (0..(821 - 1)));
+    requires \valid_read(msg + (0..(2 * (821 - 1 + 4) / 5)));
+    assigns r->coeffs[0..(821 - 1)];
+    ensures r->coeffs[821 - 1] == 0;
+*/
 void PQCLEAN_NTRUHPS4096821_CLEAN_poly_S3_frombytes(poly *r, const unsigned char msg[NTRU_OWCPA_MSGBYTES]) {
     int i;
     unsigned char c;
 
+    /*@
+        loop invariant 0 <= i <= (821 - 1) / 5;
+        loop assigns i, r->coeffs[0..(821 - 1 - 1)];
+        loop variant (821 - 1) / 5 - i;
+    */
     for (i = 0; i < NTRU_PACK_DEG / 5; i++) {
         c = msg[i];
         r->coeffs[5 * i + 0] = c;
